@@ -1,0 +1,5 @@
+# Keep only reusable Spec Kit Codex prompt assets in repo.
+# Avoid committing any future local Codex state/secrets if CODEX_HOME points here.
+.codex/*
+!.codex/prompts/
+!.codex/prompts/*.md
