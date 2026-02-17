@@ -1,0 +1,15 @@
+{
+  "workspace": {
+    "id": "a1868169-abc8-44c4-8fb9-141defea5b53"
+  },
+  "entities": {
+    "environments": [],
+    "flows": [],
+    "globals": [],
+    "mocks": [],
+    "specs": [],
+    "collections": [
+      "../SiliconExpert API Collection (Docs + Examples) [Full].postman_collection.json"
+    ]
+  }
+}
