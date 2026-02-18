@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test tests/postman_cms/*.test.mjs",
+    "test": "node --test tests/postman_cms/*.test.mjs tests/bootstrap_editor/*.test.mjs",
     "sync:postman": "node scripts/postman_cms/sync_postman_to_html.mjs"
   }
 }

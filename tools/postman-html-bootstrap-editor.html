@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Postman ↔ HTML Bootstrap Editor</title>
+<style>
+  /* ===== DESIGN: Utilitarian Editorial — dark, monospace, precision tool ===== */
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:       #0c0e14;
+    --bg2:      #13161f;
+    --bg3:      #1a1e2b;
+    --border:   #252a38;
+    --border2:  #2e3447;
+    --text:     #e0e4f0;
+    --text2:    #8a93b0;
+    --text3:    #4a5270;
+    --amber:    #f5a623;
+    --amber-bg: #1f1800;
+    --green:    #3ecf8e;
+    --green-bg: #001c10;
+    --blue:     #4da9ff;
+    --blue-bg:  #00101f;
+    --orange:   #ff7a45;
+    --orange-bg:#1f0d00;
+    --grey:     #4a5270;
+    --grey-bg:  #14161e;
+    --red:      #ff4d6b;
+    --mono:     'IBM Plex Mono', 'Courier New', monospace;
+    --sans:     'IBM Plex Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 13px;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+
+  /* ===== LOAD SCREEN ===== */
+  #load-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 40px 20px;
+    gap: 0;
+  }
+
+  .load-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .load-header h1 {
+    font-family: var(--mono);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+    margin-bottom: 8px;
+  }
+
+  .load-header .subtitle {
+    font-family: var(--sans);
+    font-size: 13px;
+    color: var(--text2);
+  }
+
+  .drop-zones {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+    max-width: 700px;
+    margin-bottom: 24px;
+  }
+
+  .drop-zone {
+    border: 1px solid var(--border2);
+    background: var(--bg2);
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+
+  .drop-zone:hover, .drop-zone.drag-over {
+    border-color: var(--blue);
+    background: var(--blue-bg);
+  }
+
+  .drop-zone.loaded {
+    border-color: var(--green);
+    background: var(--green-bg);
+  }
+
+  .drop-zone.error {
+    border-color: var(--red);
+    background: #1f000a;
+  }
+
+  .drop-zone .dz-icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .drop-zone .dz-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .drop-zone .dz-hint {
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  .drop-zone .dz-status {
+    margin-top: 10px;
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+
+  .drop-zone.loaded .dz-status { color: var(--green); }
+  .drop-zone.error .dz-status { color: var(--red); }
+
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+
+  #compare-btn {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    background: var(--amber);
+    color: #000;
+    border: none;
+    padding: 12px 36px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+
+  #compare-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  #compare-btn:not(:disabled):hover { opacity: 0.85; }
+
+  /* ===== APP SHELL ===== */
+  #app { display: none; flex-direction: column; height: 100vh; }
+  #app.active { display: flex; }
+
+  .app-topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 0 16px;
+    height: 44px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .app-topbar .logo {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+
+  .app-topbar .files-info {
+    font-size: 11px;
+    color: var(--text3);
+    font-family: var(--mono);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .stats-bar {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .stat-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 7px;
+    border: 1px solid;
+  }
+
+  .stat-chip.conflicts { border-color: var(--amber); color: var(--amber); background: var(--amber-bg); }
+  .stat-chip.matches   { border-color: var(--green);  color: var(--green);  background: var(--green-bg); }
+  .stat-chip.pending   { border-color: var(--blue);   color: var(--blue);   background: var(--blue-bg); }
+
+  /* ===== TAB BAR ===== */
+  .tab-bar {
+    display: flex;
+    gap: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    padding: 0 16px;
+  }
+
+  .tab-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text2);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 14px 8px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: color 0.1s, border-color 0.1s;
+    white-space: nowrap;
+  }
+
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+  .tab-btn .tab-count {
+    display: inline-block;
+    margin-left: 5px;
+    font-size: 9px;
+    padding: 1px 4px;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    vertical-align: middle;
+  }
+
+  /* ===== MAIN LAYOUT ===== */
+  .main-layout {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .table-area {
+    flex: 1;
+    overflow-y: auto;
+    min-width: 0;
+  }
+
+  /* ===== CHANGES PANEL ===== */
+  .changes-panel {
+    width: 280px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-header {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text2);
+    flex-shrink: 0;
+  }
+
+  .changes-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+
+  .change-item {
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+
+  .change-item .ci-key {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--blue);
+    margin-bottom: 3px;
+    word-break: break-all;
+  }
+
+  .change-item .ci-source {
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .empty-changes {
+    padding: 24px 14px;
+    font-size: 11px;
+    color: var(--text3);
+    text-align: center;
+    font-family: var(--mono);
+  }
+
+  .panel-footer {
+    padding: 12px 14px;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .apply-btn {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--amber);
+    color: #000;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: opacity 0.15s;
+  }
+
+  .apply-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .apply-btn:not(:disabled):hover { opacity: 0.85; }
+
+  .clear-btn {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 11px;
+    background: none;
+    color: var(--text3);
+    border: 1px solid var(--border2);
+    padding: 7px;
+    cursor: pointer;
+    transition: color 0.1s, border-color 0.1s;
+  }
+
+  .clear-btn:hover { color: var(--text); border-color: var(--text3); }
+
+  /* ===== COMPARISON TABLE ===== */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .section-head {
+    padding: 12px 16px 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  .cmp-table { width: 100%; border-collapse: collapse; }
+
+  .cmp-table th {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    text-align: left;
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    white-space: nowrap;
+  }
+
+  .cmp-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+    font-size: 11px;
+  }
+
+  .cmp-table tr:hover td { background: var(--bg3); }
+
+  /* Column widths */
+  .col-id     { width: 140px; min-width: 100px; }
+  .col-field  { width: 100px; }
+  .col-data   { width: calc(30%); }
+  .col-state  { width: 80px; text-align: center !important; }
+  .col-res    { width: calc(25%); }
+  .col-act    { width: 120px; white-space: nowrap; }
+
+  .cell-id {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--blue);
+    font-weight: 500;
+  }
+
+  .cell-field {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  .cell-data {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text2);
+    word-break: break-word;
+    max-width: 0;
+  }
+
+  .cell-data .null-badge {
+    color: var(--text3);
+    font-style: italic;
+  }
+
+  .cell-data .val-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .cell-data .val-text.expanded {
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .expand-toggle {
+    font-size: 10px;
+    color: var(--text3);
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: var(--mono);
+    display: block;
+    margin-top: 3px;
+  }
+
+  .expand-toggle:hover { color: var(--text); }
+
+  /* State badges */
+  .badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 2px 6px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+
+  .badge-conflict     { color: var(--amber);  border-color: var(--amber);  background: var(--amber-bg); }
+  .badge-match        { color: var(--green);  border-color: var(--green);  background: var(--green-bg); }
+  .badge-postman-only { color: var(--blue);   border-color: var(--blue);   background: var(--blue-bg); }
+  .badge-html-only    { color: var(--orange); border-color: var(--orange); background: var(--orange-bg); }
+  .badge-null-both    { color: var(--grey);   border-color: var(--grey);   background: var(--grey-bg); }
+  .badge-resolved     { color: var(--green);  border-color: var(--green);  background: var(--green-bg); }
+
+  /* Resolution cell */
+  .cell-resolved {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--green);
+    word-break: break-word;
+    max-width: 0;
+  }
+
+  .cell-resolved .res-source {
+    font-size: 9px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+  }
+
+  /* Edit mode */
+  .edit-area {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .edit-area.active { display: flex; }
+
+  .edit-area textarea {
+    font-family: var(--mono);
+    font-size: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 6px 8px;
+    resize: vertical;
+    min-height: 60px;
+    width: 100%;
+    outline: none;
+  }
+
+  .edit-area textarea:focus { border-color: var(--blue); }
+
+  .edit-btns { display: flex; gap: 4px; }
+
+  /* Action buttons */
+  .act-btn {
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    padding: 4px 8px;
+    cursor: pointer;
+    border: 1px solid;
+    background: none;
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+    letter-spacing: 0.3px;
+  }
+
+  .act-btn-p { color: var(--blue);   border-color: var(--blue); }
+  .act-btn-p:hover { background: var(--blue); color: var(--bg); }
+
+  .act-btn-h { color: var(--orange); border-color: var(--orange); }
+  .act-btn-h:hover { background: var(--orange); color: var(--bg); }
+
+  .act-btn-e { color: var(--text2); border-color: var(--border2); }
+  .act-btn-e:hover { background: var(--bg3); }
+
+  .act-btn-s { color: var(--green); border-color: var(--green); }
+  .act-btn-s:hover { background: var(--green); color: var(--bg); }
+
+  .act-btn-c { color: var(--text3); border-color: var(--border); }
+  .act-btn-c:hover { color: var(--text2); }
+
+  .cell-actions { display: flex; flex-wrap: wrap; gap: 3px; align-items: flex-start; }
+
+  /* Filter bar */
+  .filter-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+  }
+
+  .filter-bar label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .filter-bar select, .filter-bar input {
+    font-family: var(--mono);
+    font-size: 11px;
+    background: var(--bg);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 4px 8px;
+    outline: none;
+  }
+
+  .filter-bar select:focus, .filter-bar input:focus { border-color: var(--blue); }
+
+  /* Success banner */
+  .success-banner {
+    display: none;
+    background: var(--green-bg);
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 10px 14px;
+    margin: 8px 14px;
+    font-size: 11px;
+    font-family: var(--mono);
+  }
+
+  .success-banner.active { display: block; }
+
+  /* Scrollbars */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg2); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* Util */
+  .hidden { display: none !important; }
+  .flex-row { display: flex; gap: 4px; }
+  .mono { font-family: var(--mono); }
+</style>
+</head>
+<body>
+
+<!-- ===== LOAD SCREEN ===== -->
+<div id="load-screen">
+  <div class="load-header">
+    <h1>Postman ↔ HTML Bootstrap Editor</h1>
+    <p class="subtitle">Compare, reconcile, and export both sources in one pass &mdash; no server, no install, fully offline</p>
+  </div>
+
+  <div class="drop-zones">
+    <div class="drop-zone" id="dz-postman" role="button" aria-label="Drop Postman collection JSON here">
+      <input type="file" id="file-postman" accept=".json" aria-label="Select Postman collection JSON">
+      <span class="dz-icon" aria-hidden="true">📦</span>
+      <div class="dz-label">Postman Collection</div>
+      <div class="dz-hint">.postman_collection.json</div>
+      <div class="dz-status" id="status-postman">Drop file or click to select</div>
+    </div>
+
+    <div class="drop-zone" id="dz-html" role="button" aria-label="Drop HTML documentation file here">
+      <input type="file" id="file-html" accept=".html" aria-label="Select HTML documentation file">
+      <span class="dz-icon" aria-hidden="true">📄</span>
+      <div class="dz-label">HTML Documentation</div>
+      <div class="dz-hint">SE_API_Docs_*.html</div>
+      <div class="dz-status" id="status-html">Drop file or click to select</div>
+    </div>
+  </div>
+
+  <button id="compare-btn" disabled aria-label="Compare both files">COMPARE →</button>
+</div>
+
+<!-- ===== APP SHELL ===== -->
+<div id="app" role="main">
+  <div class="app-topbar">
+    <span class="logo">Bootstrap Editor</span>
+    <span class="files-info" id="files-info"></span>
+    <div class="stats-bar" id="stats-bar"></div>
+  </div>
+
+  <div class="tab-bar" role="tablist" aria-label="Content blocks">
+    <button class="tab-btn active" data-tab="endpoints" role="tab" aria-selected="true" aria-controls="panel-endpoints">
+      Endpoints <span class="tab-count" id="tc-endpoints">–</span>
+    </button>
+    <button class="tab-btn" data-tab="examples" role="tab" aria-selected="false" aria-controls="panel-examples">
+      Examples <span class="tab-count" id="tc-examples">–</span>
+    </button>
+    <button class="tab-btn" data-tab="welcome" role="tab" aria-selected="false" aria-controls="panel-welcome">
+      Welcome <span class="tab-count" id="tc-welcome">–</span>
+    </button>
+    <button class="tab-btn" data-tab="errorcodes" role="tab" aria-selected="false" aria-controls="panel-errorcodes">
+      Error Codes <span class="tab-count" id="tc-errorcodes">–</span>
+    </button>
+  </div>
+
+  <div class="main-layout">
+    <div class="table-area" id="table-area">
+
+      <!-- Endpoints tab -->
+      <div class="tab-panel active" id="panel-endpoints" role="tabpanel" aria-labelledby="tab-endpoints">
+        <div class="filter-bar">
+          <label for="filter-state-ep">State</label>
+          <select id="filter-state-ep" aria-label="Filter by state">
+            <option value="all">All</option>
+            <option value="conflict">Conflict</option>
+            <option value="postman-only">Postman Only</option>
+            <option value="html-only">HTML Only</option>
+            <option value="match">Match</option>
+            <option value="null-both">Null Both</option>
+          </select>
+          <label for="filter-field-ep">Field</label>
+          <select id="filter-field-ep" aria-label="Filter by field">
+            <option value="all">All Fields</option>
+            <option value="description">description</option>
+            <option value="title">title</option>
+            <option value="params">params</option>
+            <option value="getStarted">getStarted</option>
+          </select>
+          <label for="search-ep">Search</label>
+          <input type="search" id="search-ep" placeholder="endpoint id…" aria-label="Search endpoints" style="width:160px">
+        </div>
+        <div id="endpoints-table-container"></div>
+      </div>
+
+      <!-- Examples tab -->
+      <div class="tab-panel" id="panel-examples" role="tabpanel" aria-labelledby="tab-examples">
+        <div class="filter-bar">
+          <label for="filter-state-ex">State</label>
+          <select id="filter-state-ex" aria-label="Filter examples by state">
+            <option value="all">All</option>
+            <option value="conflict">Conflict</option>
+            <option value="postman-only">Postman Only</option>
+            <option value="html-only">HTML Only</option>
+            <option value="match">Match</option>
+          </select>
+          <label for="search-ex">Search</label>
+          <input type="search" id="search-ex" placeholder="endpoint id…" aria-label="Search examples" style="width:160px">
+        </div>
+        <div id="examples-table-container"></div>
+      </div>
+
+      <!-- Welcome tab -->
+      <div class="tab-panel" id="panel-welcome" role="tabpanel" aria-labelledby="tab-welcome">
+        <div id="welcome-table-container"></div>
+      </div>
+
+      <!-- Error Codes tab -->
+      <div class="tab-panel" id="panel-errorcodes" role="tabpanel" aria-labelledby="tab-errorcodes">
+        <div id="errorcodes-table-container"></div>
+      </div>
+
+    </div>
+
+    <!-- Changes panel -->
+    <aside class="changes-panel" aria-label="Pending changes">
+      <div class="panel-header">Pending Changes</div>
+      <div class="changes-list" id="changes-list">
+        <div class="empty-changes" id="empty-changes">No resolutions yet.<br>Use ← Use Postman or Use HTML →<br>on any row.</div>
+      </div>
+      <div class="success-banner" id="success-banner">
+        ✓ Both files downloaded.<br>Load them back here to confirm zero conflicts.
+      </div>
+      <div class="panel-footer">
+        <button class="apply-btn" id="apply-btn" disabled aria-label="Apply changes and download both files">Apply &amp; Download</button>
+        <button class="clear-btn" id="clear-btn" aria-label="Clear all resolutions">Clear All</button>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// INLINED LIB: utils / parse-collection / parse-html-blocks / serialize / merge-engine
+// All ES module exports are converted to a single global namespace: BootstrapEditor
+// ============================================================
+const BootstrapEditor = (() => {
+'use strict';
+
+// ---- utils ----
+function slugify(v){return String(v||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')||'item';}
+function cleanText(v){return String(v||'').replace(/\r/g,'').trim();}
+function stripMarkdown(v){return cleanText(v).replace(/^#+\s+/gm,'').replace(/\*\*(.*?)\*\*/g,'$1').replace(/`([^`]+)`/g,'$1').replace(/\[(.*?)\]\([^)]*\)/g,'$1');}
+function firstSentence(v){const t=stripMarkdown(v).replace(/\s+/g,' ').trim();if(!t)return '';const m=t.match(/^(.+?[.!?])(?:\s|$)/);return m?m[1].trim():t;}
+function uniqueBy(items,fn){const s=new Set(),o=[];for(const i of items){const k=fn(i);if(s.has(k))continue;s.add(k);o.push(i);}return o;}
+function djb2(s){let h=5381;for(let i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))>>>0;return h.toString(16).padStart(8,'0');}
+function sortDeepUtil(v){if(Array.isArray(v))return v.map(sortDeepUtil);if(!v||typeof v!=='object')return v;const s={};for(const k of Object.keys(v).sort())s[k]=sortDeepUtil(v[k]);return s;}
+function hashObject(v){return djb2(JSON.stringify(sortDeepUtil(v),null,2));}
+
+// ---- parse-collection ----
+const CATEGORY_ALIAS=[['Authentication','auth'],['User Status & Quota','auth'],['Part Search Operations','search'],['Parametric Search Operations','parametric'],['BOM Operations','bom'],['ACL & Alert & PCN Operations','acl'],['Supply Chain Risk Management (SCRM) Operations','scrm'],['Manufacturer/Supplier Search','mfr'],['Reports','reports'],['IPC','ipc']];
+function mapCategoryKey(n=''){const x=String(n).toLowerCase();for(const[s,k]of CATEGORY_ALIAS)if(x.includes(s.toLowerCase()))return k;return slugify(n);}
+function toPath(u){if(!u)return '/';if(Array.isArray(u.path)){const c=u.path.map(p=>String(p||'').trim()).filter(Boolean).join('/');return`/${c}`;}const r=String(u.raw||'').trim();if(!r)return '/';try{const p=new URL(r.startsWith('http')?r:`https://placeholder.local${r.startsWith('/')?'':'/'}${r}`);return p.pathname||'/';}catch{const q=r.split('?')[0]||'/';const h=q.replace(/^https?:\/\/[^/]+/i,'');return h.startsWith('/')?h:`/${h}`;}}
+function extractQueryParams(u){const l=Array.isArray(u?.query)?u.query:[];return l.filter(q=>q&&!q.disabled).map(q=>({name:String(q.key||'').trim(),type:'string',required:false,paramType:'query',desc:String(q.description||'').trim()})).filter(p=>p.name);}
+function extractBodyParams(req){const o=[];const b=req?.body;if(!b)return o;if(b.mode==='urlencoded'&&Array.isArray(b.urlencoded)){for(const f of b.urlencoded){if(!f||f.disabled)continue;o.push({name:String(f.key||'').trim(),type:'string',required:false,paramType:'body',desc:String(f.description||'').trim()});}}if(b.mode==='formdata'&&Array.isArray(b.formdata)){for(const f of b.formdata){if(!f||f.disabled)continue;o.push({name:String(f.key||'').trim(),type:f.type==='file'?'file':'string',required:false,paramType:'body',desc:String(f.description||'').trim()});}}if(b.mode==='raw'&&typeof b.raw==='string'){const r=b.raw.trim();if(r.startsWith('{')||r.startsWith('[')){try{const p=JSON.parse(r);if(p&&typeof p==='object'&&!Array.isArray(p))for(const k of Object.keys(p))o.push({name:k,type:typeof p[k],required:false,paramType:'body',desc:''});}catch{}}}return o.filter(p=>p.name);}
+function flattenJsonSchema(obj,bp=''){const f=[];if(!obj||typeof obj!=='object')return f;const entries=Array.isArray(obj)?obj.map((v,i)=>[String(i),v]):Object.entries(obj);for(const[k,v]of entries){const path=bp?`${bp}.${k}`:k;if(v&&typeof v==='object'&&!Array.isArray(v)){f.push({path,type:'object',example:''});f.push(...flattenJsonSchema(v,path));}else if(Array.isArray(v)){const ap=`${path}[]`;f.push({path:ap,type:'array',example:''});if(v.length>0&&v[0]&&typeof v[0]==='object')f.push(...flattenJsonSchema(v[0],ap));}else f.push({path,type:typeof v,example:v===undefined?'':String(v)});}return f;}
+function normalizeResponseSchema(rs){const f=[];for(const r of rs){const b=String(r.body||'').trim();if(!b)continue;if(b.startsWith('{')||b.startsWith('['))try{f.push(...flattenJsonSchema(JSON.parse(b)));}catch{}if(f.length>0)break;}return uniqueBy(f,x=>`${x.path}:${x.type}`).sort((a,b)=>a.path.localeCompare(b.path));}
+function extractXmlStatus(body){const cr=/<Code>\s*([^<]+?)\s*<\/Code>/gi,mr=/<Message>\s*([^<]+?)\s*<\/Message>/gi;const cs=[...body.matchAll(cr)].map(m=>m[1].trim()),ms=[...body.matchAll(mr)].map(m=>m[1].trim());return cs.map((c,i)=>({code:c,message:ms[i]||'',source:'xml'}));}
+function readStatusSignals(jv){const sigs=[];const visit=v=>{if(!v||typeof v!=='object')return;if(!Array.isArray(v)){const ks=Object.keys(v),lm=new Map(ks.map(k=>[k.toLowerCase(),k]));const ck=lm.get('code')||lm.get('statuscode'),sk=lm.get('status'),mk=lm.get('message');if(sk&&v[sk]&&typeof v[sk]==='object'){const s=v[sk];const sc=s.Code??s.code??s.StatusCode??s.statusCode;if(sc!==undefined)sigs.push({code:String(sc),message:String(s.Message??s.message??''),source:'json.status'});}if(ck&&(mk||lm.get('status')||lm.get('success')))sigs.push({code:String(v[ck]),message:String(v[mk]??''),source:'json.code'});}if(Array.isArray(v))for(const i of v)visit(i);else for(const n of Object.values(v))visit(n);};visit(jv);return sigs;}
+function classifyErrorKind(c,m,ctx=''){const t=`${c} ${m} ${ctx}`.toLowerCase();if(/auth|unauthor|forbidden|denied|session|login|credential/.test(t))return 'auth';if(/quota|limit|rate|throttle/.test(t))return 'quota';if(/invalid|missing|required|bad request|format|parse|validation/.test(t))return 'validation';if(/server|internal|timeout|unavailable|error/.test(t))return 'server';return 'unknown';}
+function buildCurl(p,method,qps=[],bps=[]){const q=qps.length?`?${qps.map(x=>`${encodeURIComponent(x.name)}={{${x.name}}}`).join('&')}`:''  ;const ep=`https://api.siliconexpert.com${p}${q}`;const lines=[`curl -X ${method.toUpperCase()} "${ep}"`];if(bps.length)lines.push('  -H "Content-Type: application/json"');return lines.join(' \\\n');}
+function collectRequests(items,stack=[],out=[]){for(const i of items||[]){if(Array.isArray(i.item)){collectRequests(i.item,[...stack,i],out);continue;}if(!i?.request)continue;out.push({item:i,stack});}return out;}
+function describeTopFolders(col){return(col?.item||[]).filter(i=>Array.isArray(i.item)).map((f,idx)=>({id:`${idx+1}`,key:mapCategoryKey(f.name),name:String(f.name||'').trim()||`Category ${idx+1}`,description:String(f.description||f.request?.description||'').trim(),order:idx}));}
+function pickEndpointId(ebmp,name,method,path,usedIds){const k=`${method.toUpperCase()} ${path}`;if(ebmp.has(k)){const id=ebmp.get(k);usedIds.add(id);return id;}let c=slugify(name||`${method}-${path}`);if(!c||c==='item')c=slugify(`${method}-${path.replace(/\W+/g,'-')}`);let s=2;const b=c;while(usedIds.has(c)){c=`${b}-${s}`;s++;}usedIds.add(c);return c;}
+
+function buildErrorCatalog(entries){const sigs=[];const hc=new Map();for(const e of entries){for(const r of e.responses){if(r.code!=null){const n=Number(r.code);const c=Number.isFinite(n)?n:String(r.code);if(!hc.has(c))hc.set(c,{code:c,meaning:r.status||'HTTP Response',description:`Observed in ${e.method.toUpperCase()} ${e.path}`,severity:classifyErrorKind(c,r.status||'',e.description)});}const b=String(r.body||'').trim();if(!b)continue;if(b.startsWith('{')||b.startsWith('['))try{const p=JSON.parse(b);sigs.push(...readStatusSignals(p).map(s=>({...s,endpoint:`${e.method.toUpperCase()} ${e.path}`,context:e.description})));}catch{}else if(b.startsWith('<'))sigs.push(...extractXmlStatus(b).map(s=>({...s,endpoint:`${e.method.toUpperCase()} ${e.path}`,context:e.description})));}}const bm=new Map();for(const s of sigs){const c=String(s.code||'').trim();if(!c)continue;if(!bm.has(c))bm.set(c,{code:c,meaning:s.message||'Status response',action:'Review.',severity:classifyErrorKind(c,s.message||'',s.context||''),sources:[]});const t=bm.get(c);if(!t.meaning&&s.message)t.meaning=s.message;if(s.endpoint)t.sources.push(s.endpoint);}const ms=[];for(const[,i]of[...bm.entries()].sort((a,b)=>String(a[0]).localeCompare(String(b[0]),'en',{numeric:true}))){const k=i.severity;if(k==='auth')i.action='Authenticate again or verify credentials/permissions.';if(k==='validation')i.action='Validate required parameters and input formats.';if(k==='quota')i.action='Reduce request frequency and retry with backoff.';if(k==='server')i.action='Retry later; escalate if issue persists.';if(k==='unknown')i.action='Inspect message and endpoint documentation for guidance.';i.sources=uniqueBy(i.sources.sort(),x=>x).slice(0,5);ms.push(i);}const sh=[...hc.values()].sort((a,b)=>String(a.code).localeCompare(String(b.code),'en',{numeric:true}));return{statusCodes:ms,httpCodes:sh,notes:['Always evaluate both HTTP status and payload status code fields.','Retry logic should include backoff for quota or transient failures.','Authentication/session errors should trigger a fresh authenticate call.']};}
+
+function buildWelcomeContent(col,folders,hasAuth){const title=stripMarkdown(col?.info?.name||'SE API Documentation')||'SE API Documentation';const subtitle=firstSentence(col?.info?.description||'API documentation generated from Postman collection.');const cards=folders.map(f=>({title:f.name,description:firstSentence(f.description||`Endpoints for ${f.name}.`),routeType:'category',section:f.key}));const gl=[hasAuth?'Run authentication first and reuse session cookies in subsequent requests.':'Confirm required credentials and headers before invoking endpoints.','Use Postman examples to validate request shape before coding integration.','Handle non-success status codes with deterministic retry/error handling.'];const gr=['Track release notes for integration-impacting changes.','Use endpoint examples in docs for quick troubleshooting.','Keep environment secrets in secure variables, never in committed files.'];return{title,subtitle,baseUrl:'https://api.siliconexpert.com/ProductAPI',guidelinesLeft:gl,guidelinesRight:gr,supportCards:cards};}
+
+function parseCollection(col,opts={}){const cad=opts.currentApiData||{};const ebmp=new Map();for(const[id,ep]of Object.entries(cad)){if(!ep||typeof ep!=='object')continue;const m=String(ep.method||'').toUpperCase();const p=String(ep.path||'');if(!m||!p)continue;ebmp.set(`${m} ${p}`,id);}const tf=describeTopFolders(col);const tfn=new Map(tf.map(f=>[f.name,f]));const re=collectRequests(col?.item||[]);const used=new Set(Object.keys(cad));const ad={},ex={},eps=[];const sp=['welcome','postman','error-codes','release-notes'];for(const p of sp)if(cad[p])ad[p]=cad[p];for(const e of re){const req=e.item.request;const method=String(req.method||'GET').toUpperCase();const path=toPath(req.url);const qp=extractQueryParams(req.url);const bp=extractBodyParams(req);const desc=stripMarkdown(e.item?.request?.description||e.item?.description||'').replace(/\s+/g,' ').trim();const params=[...qp,...bp];const tf2=e.stack[0]?tfn.get(e.stack[0].name):null;const ck=tf2?.key||'misc';const bc=tf2?.name||'API Reference';const id=pickEndpointId(ebmp,e.item.name,method,path,used);const cur=cad[id]&&typeof cad[id]==='object'?{...cad[id]}:{};const rs=(Array.isArray(e.item.response)?e.item.response:[]).map(r=>({name:String(r.name||'').trim(),code:r.code??null,status:String(r.status||'').trim(),body:String(r.body||'')}));const ee=rs.slice(0,6).map((r,i)=>({title:r.name||`Example ${i+1}`,subtitle:r.code?`${r.code} ${r.status||''}`.trim():r.status||'',request:buildCurl(path,method,qp,bp),response:r.body,note:desc?`Derived from: ${desc}`:''}));const rschema=normalizeResponseSchema(rs);ad[id]={...cur,id,title:String(e.item.name||cur.title||id),method,path,category:ck,breadcrumb:bc,description:desc||String(cur.description||''),params,responseSchema:rschema,hasExamples:ee.length>0,getStarted:{...(cur.getStarted||{}),title:(cur.getStarted&&cur.getStarted.title)||'Get Started',content:(cur.getStarted&&cur.getStarted.content)||'<ul><li>Authenticate first.</li></ul>'}};if(ee.length>0)ex[id]=ee;eps.push({id,name:e.item.name,method,path,categoryId:ck,description:desc,params,examples:ee,responses:rs});}for(const[k,v]of Object.entries(opts.currentExamples||{}))if(!ex[k]&&!ad[k]?.method)ex[k]=v;const cats=tf.map(f=>({id:f.key,name:f.name,parentId:null,order:f.order})).sort((a,b)=>a.order-b.order);const hae=eps.some(e=>/auth|authenticate/i.test(e.path)||/auth/i.test(e.name));const wc=buildWelcomeContent(col,tf,hae);const ec=buildErrorCatalog(eps);return{categories:cats,endpoints:eps,apiData:ad,examples:ex,errorCodes:ec,welcomeContent:wc,hash:hashObject({categories:cats,endpoints:eps})};}
+
+// ---- parse-html-blocks ----
+const REQUIRED_BLOCKS=['API_DATA','EXAMPLES','WELCOME_CONTENT','ERROR_CODES_CONTENT','RELEASE_NOTES_CONTENT'];
+function findConstStart(html,name){const pat=new RegExp(`\\bconst\\s+${name}\\s*=`,'g');const m=[...html.matchAll(pat)];if(m.length!==1)throw new Error(`Missing or ambiguous anchor for ${name} (found ${m.length})`);return m[0].index;}
+function readJsObjectLiteral(html,si){const ai=html.indexOf('=',si);if(ai<0)throw new Error('Invalid const assignment');const oi=html.indexOf('{',ai);if(oi<0)throw new Error('Object block opening brace not found');let i=oi,depth=0,quote=null,escaped=false,inLC=false,inBC=false;for(;i<html.length;i++){const ch=html[i],nx=html[i+1];if(inLC){if(ch==='\n')inLC=false;continue;}if(inBC){if(ch==='*'&&nx=='/'){inBC=false;i++;}continue;}if(quote){if(escaped)escaped=false;else if(ch==='\\')escaped=true;else if(ch===quote)quote=null;continue;}if(ch==='/'&&nx==='/')  {inLC=true;i++;continue;}if(ch==='/'&&nx==='*'){inBC=true;i++;continue;}if(ch==='"'||ch==="'"||ch==='`'){quote=ch;continue;}if(ch==='{'){depth++;continue;}if(ch==='}'){depth--;if(depth===0){let si2=i+1;while(si2<html.length&&/\s/.test(html[si2]))si2++;if(html[si2]!==';')throw new Error('Object block missing trailing semicolon');return{objectText:html.slice(oi,i+1),replaceStart:si,replaceEnd:si2+1};}}}throw new Error('Unbalanced object block');}
+function parseHtmlBlocks(html){const blocks={};for(const name of REQUIRED_BLOCKS){const start=findConstStart(html,name);const lit=readJsObjectLiteral(html,start);let val;try{val=JSON.parse(lit.objectText);}catch(e){throw new Error(`${name}: block body is not valid JSON — ${e.message}`);}blocks[name]={...lit,value:val};}return blocks;}
+
+// ---- serialize ----
+const DEFAULT_INDENT='            ';
+function serializeConstObject(name,value,indent=DEFAULT_INDENT){const lines=JSON.stringify(value,null,4).split('\n');const[first,...rest]=lines;const ir=rest.map(l=>`${indent}${l}`).join('\n');const body=rest.length>0?`${first}\n${ir}`:first;return`const ${name} = ${body};`;}
+function applyBlockUpdates(html,blocks,updates){const names=Object.keys(updates).sort((a,b)=>(blocks[b]?.replaceStart??0)-(blocks[a]?.replaceStart??0));let r=html;for(const n of names){const b=blocks[n];if(!b)throw new Error(`applyBlockUpdates: block '${n}' not found`);r=r.slice(0,b.replaceStart)+serializeConstObject(n,updates[n])+r.slice(b.replaceEnd);}return r;}
+
+// ---- merge-engine ----
+function deepEqual(a,b){if(a===b)return true;if(a==null||b==null)return a===b;return JSON.stringify(sortDeepUtil(a))===JSON.stringify(sortDeepUtil(b));}
+function classifyRow(p,h){const pn=p==null,hn=h==null;if(pn&&hn)return 'null-both';if(pn)return 'html-only';if(hn)return 'postman-only';return deepEqual(p,h)?'match':'conflict';}
+function rowKey(r){return`${r.block}::${r.id}::${r.field}`;}
+
+function buildUnifiedRegistry(ps,hb){const rows=[];const pad=ps.apiData||{},had=hb.API_DATA?.value||{};const allIds=new Set([...Object.keys(pad),...Object.keys(had)]);const STATIC=new Set(['welcome','postman','error-codes','release-notes']);const EF=['title','description','method','path','breadcrumb','params','getStarted'];for(const id of[...allIds].filter(x=>!STATIC.has(x)).sort()){const p=pad[id]||null,h=had[id]||null;for(const f of EF)rows.push({id,block:'apiData',field:f,postman:p?p[f]??null:null,html:h?h[f]??null:null,state:classifyRow(p?p[f]??null:null,h?h[f]??null:null)});}const pe=ps.examples||{},he=hb.EXAMPLES?.value||{};const aeIds=new Set([...Object.keys(pe),...Object.keys(he)]);for(const id of[...aeIds].sort()){const p=pe[id]??null,h=he[id]??null;rows.push({id,block:'examples',field:'examples',postman:p,html:h,state:classifyRow(p,h)});}const pw=ps.welcomeContent||{},hw=hb.WELCOME_CONTENT?.value||{};for(const f of['title','subtitle','baseUrl','guidelinesLeft','guidelinesRight','supportCards']){const p=pw[f]??null,h=hw[f]??null;rows.push({id:'welcome',block:'welcome',field:f,postman:p,html:h,state:classifyRow(p,h)});}const pe2=ps.errorCodes||{},he2=hb.ERROR_CODES_CONTENT?.value||{};rows.push({id:'error-codes',block:'errorCodes',field:'statusCodes',postman:pe2.statusCodes??null,html:he2.statusCodes??null,state:classifyRow(pe2.statusCodes??null,he2.statusCodes??null)});rows.push({id:'error-codes',block:'errorCodes',field:'httpCodes',postman:pe2.httpCodes??null,html:he2.httpCodes??null,state:classifyRow(pe2.httpCodes??null,he2.httpCodes??null)});return rows;}
+
+function cloneVal(v){return JSON.parse(JSON.stringify(v==null?null:v));}
+function setAtPath(obj,path,val){const parts=path.split('.');let c=obj;for(let i=0;i<parts.length-1;i++){if(c[parts[i]]===undefined)c[parts[i]]={};c=c[parts[i]];}c[parts[parts.length-1]]=val;}
+
+function applyResolutions(reg,res,origPostman,origHtml,hb){const pm=cloneVal(origPostman);const hu={API_DATA:cloneVal(hb.API_DATA?.value||{}),EXAMPLES:cloneVal(hb.EXAMPLES?.value||{}),WELCOME_CONTENT:cloneVal(hb.WELCOME_CONTENT?.value||{}),ERROR_CODES_CONTENT:cloneVal(hb.ERROR_CODES_CONTENT?.value||{})};for(const row of reg){const k=rowKey(row);const r=res[k];if(!r||r.source==='unchanged')continue;const{resolved,source}=r;const uh=source==='postman'||source==='custom';if(uh){if(row.block==='apiData'){if(!hu.API_DATA[row.id])hu.API_DATA[row.id]={};setAtPath(hu.API_DATA[row.id],row.field,resolved);}else if(row.block==='examples')hu.EXAMPLES[row.id]=resolved;else if(row.block==='welcome')setAtPath(hu.WELCOME_CONTENT,row.field,resolved);else if(row.block==='errorCodes')setAtPath(hu.ERROR_CODES_CONTENT,row.field,resolved);}const up=source==='html'||source==='custom';if(up){if(row.block==='apiData'||row.block==='examples')_writeToPostmanRequest(pm,row,resolved);else if(row.block==='welcome'){if(row.field==='title'&&pm.info)pm.info.name=String(resolved||'');if(row.field==='subtitle'&&pm.info)pm.info.description=String(resolved||'');}}}const hs=applyBlockUpdates(origHtml,hb,hu);return{postmanJson:JSON.stringify(pm,null,2),htmlString:hs};}
+
+function _writeToPostmanRequest(pm,row,resolved){const t=_findReqItem(pm.item||[],row.id);if(!t)return;if(row.block==='apiData'&&row.field==='description')t.request.description=String(resolved||'');else if(row.block==='examples'&&Array.isArray(resolved)&&Array.isArray(t.response))resolved.forEach((ex,i)=>{if(t.response[i]){t.response[i].body=String(ex.response||'');if(ex.title)t.response[i].name=String(ex.title);}});}
+function _findReqItem(items,tid){for(const i of items){if(Array.isArray(i.item)){const f=_findReqItem(i.item,tid);if(f)return f;continue;}if(!i.request)continue;if(slugify(i.name||'')===tid)return i;}return null;}
+
+// ============================================================
+// App State
+// ============================================================
+let state = {
+  postmanRaw: null,    // raw text
+  htmlRaw: null,       // raw text
+  postmanName: '',
+  htmlName: '',
+  postmanObj: null,    // parsed JSON
+  htmlBlocks: null,    // parsed blocks
+  snapshot: null,      // PostmanSnapshot
+  registry: null,      // UnifiedRow[]
+  resolutions: {},     // rowKey → {resolved, source}
+};
+
+// ============================================================
+// Load Screen Logic
+// ============================================================
+function setupLoadScreen() {
+  const filePostman = document.getElementById('file-postman');
+  const fileHtml = document.getElementById('file-html');
+  const dzPostman = document.getElementById('dz-postman');
+  const dzHtml = document.getElementById('dz-html');
+  const compareBtn = document.getElementById('compare-btn');
+
+  function readFile(file, which) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => resolve({ text: e.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n'), name: file.name });
+      reader.onerror = () => reject(new Error('File read failed'));
+      reader.readAsText(file, 'UTF-8');
+    });
+  }
+
+  function setZoneState(zone, statusEl, cls, msg) {
+    zone.className = `drop-zone ${cls}`;
+    statusEl.textContent = msg;
+  }
+
+  async function handlePostman(file) {
+    const dz = document.getElementById('dz-postman');
+    const st = document.getElementById('status-postman');
+    try {
+      const { text, name } = await readFile(file, 'postman');
+      const obj = JSON.parse(text);
+      if (!obj.info || !Array.isArray(obj.item)) throw new Error('Not a valid Postman collection (missing info or item)');
+      state.postmanRaw = text;
+      state.postmanObj = obj;
+      state.postmanName = name;
+      setZoneState(dz, st, 'loaded', `✓ ${name}`);
+    } catch (e) {
+      state.postmanRaw = null; state.postmanObj = null;
+      setZoneState(dz, st, 'error', `✗ ${e.message}`);
+    }
+    checkReady();
+  }
+
+  async function handleHtml(file) {
+    const dz = document.getElementById('dz-html');
+    const st = document.getElementById('status-html');
+    try {
+      const { text, name } = await readFile(file, 'html');
+      const blocks = parseHtmlBlocks(text);
+      state.htmlRaw = text;
+      state.htmlBlocks = blocks;
+      state.htmlName = name;
+      setZoneState(dz, st, 'loaded', `✓ ${name}`);
+    } catch (e) {
+      state.htmlRaw = null; state.htmlBlocks = null;
+      setZoneState(dz, st, 'error', `✗ ${e.message}`);
+    }
+    checkReady();
+  }
+
+  function checkReady() {
+    compareBtn.disabled = !(state.postmanObj && state.htmlBlocks);
+  }
+
+  filePostman.addEventListener('change', e => { if (e.target.files[0]) handlePostman(e.target.files[0]); });
+  fileHtml.addEventListener('change', e => { if (e.target.files[0]) handleHtml(e.target.files[0]); });
+
+  // Drag and drop
+  [dzPostman, dzHtml].forEach(dz => {
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', e => {
+      e.preventDefault();
+      dz.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      if (dz === dzPostman) handlePostman(file);
+      else handleHtml(file);
+    });
+  });
+
+  compareBtn.addEventListener('click', () => {
+    startCompare();
+  });
+}
+
+// ============================================================
+// Build comparison data and render UI
+// ============================================================
+function startCompare() {
+  // Parse Postman using existing HTML content as reference for IDs
+  const currentApiData = state.htmlBlocks.API_DATA.value || {};
+  const currentExamples = state.htmlBlocks.EXAMPLES.value || {};
+  state.snapshot = parseCollection(state.postmanObj, { currentApiData, currentExamples });
+  state.registry = buildUnifiedRegistry(state.snapshot, state.htmlBlocks);
+  state.resolutions = {};
+
+  // Switch to app view
+  document.getElementById('load-screen').style.display = 'none';
+  const app = document.getElementById('app');
+  app.classList.add('active');
+
+  // Update files info
+  document.getElementById('files-info').textContent = `${state.postmanName}  ↔  ${state.htmlName}`;
+
+  // Initial render
+  renderAll();
+  updateStats();
+  updateChangesPanel();
+}
+
+// ============================================================
+// Rendering
+// ============================================================
+function renderAll() {
+  renderEndpointsTab();
+  renderExamplesTab();
+  renderWelcomeTab();
+  renderErrorCodesTab();
+  updateTabCounts();
+}
+
+function stateClass(s) {
+  const m = { 'conflict':'badge-conflict', 'match':'badge-match', 'postman-only':'badge-postman-only', 'html-only':'badge-html-only', 'null-both':'badge-null-both' };
+  return m[s] || 'badge-null-both';
+}
+
+function stateLabel(s) {
+  const m = { 'conflict':'CONFLICT', 'match':'MATCH', 'postman-only':'POSTMAN', 'html-only':'HTML', 'null-both':'NULL', 'resolved':'RESOLVED' };
+  return m[s] || s.toUpperCase();
+}
+
+function formatVal(v) {
+  if (v === null || v === undefined) return '<span class="null-badge">null</span>';
+  if (typeof v === 'object') {
+    const s = JSON.stringify(v, null, 2);
+    const short = s.length > 200 ? s.slice(0, 200) + '…' : s;
+    const esc = htmlEsc(short);
+    return `<span class="val-text">${esc}</span>`;
+  }
+  const s = String(v);
+  const short = s.length > 300 ? s.slice(0, 300) + '…' : s;
+  return `<span class="val-text">${htmlEsc(short)}</span>`;
+}
+
+function htmlEsc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function rowEffectiveState(row) {
+  const rk = rowKey(row);
+  if (state.resolutions[rk] && state.resolutions[rk].source !== 'unchanged') return 'resolved';
+  return row.state;
+}
+
+function makeActionsCell(row) {
+  const rk = rowKey(row);
+  const res = state.resolutions[rk];
+  const isResolved = res && res.source !== 'unchanged';
+
+  const pBtn = row.postman !== null ? `<button class="act-btn act-btn-p" data-rk="${htmlEsc(rk)}" data-action="use-postman" aria-label="Use Postman value">← Postman</button>` : '';
+  const hBtn = row.html !== null ? `<button class="act-btn act-btn-h" data-rk="${htmlEsc(rk)}" data-action="use-html" aria-label="Use HTML value">HTML →</button>` : '';
+  const eBtn = `<button class="act-btn act-btn-e" data-rk="${htmlEsc(rk)}" data-action="edit" aria-label="Edit value">Edit</button>`;
+  const uBtn = isResolved ? `<button class="act-btn act-btn-c" data-rk="${htmlEsc(rk)}" data-action="undo" aria-label="Undo resolution">Undo</button>` : '';
+
+  return `<div class="cell-actions">${pBtn}${hBtn}${eBtn}${uBtn}</div>
+    <div class="edit-area" id="edit-${rk.replace(/[^a-z0-9]/gi,'_')}" aria-label="Edit resolved value">
+      <textarea rows="3" aria-label="Resolved value for ${htmlEsc(rk)}"></textarea>
+      <div class="edit-btns">
+        <button class="act-btn act-btn-s" data-rk="${htmlEsc(rk)}" data-action="save-edit" aria-label="Save edited value">Save</button>
+        <button class="act-btn act-btn-c" data-rk="${htmlEsc(rk)}" data-action="cancel-edit" aria-label="Cancel editing">Cancel</button>
+      </div>
+    </div>`;
+}
+
+function makeResolvedCell(row) {
+  const rk = rowKey(row);
+  const res = state.resolutions[rk];
+  if (!res || res.source === 'unchanged') return '<span style="color:var(--text3);font-size:10px">—</span>';
+  const src = res.source.toUpperCase();
+  const val = formatVal(res.resolved);
+  return `<div class="cell-resolved"><div class="res-source" aria-label="Resolution source: ${src}">${src}</div>${val}</div>`;
+}
+
+function renderTableForRows(rows, container) {
+  if (!rows.length) {
+    container.innerHTML = '<div style="padding:24px 16px;color:var(--text3);font-family:var(--mono);font-size:11px">No rows match the current filter.</div>';
+    return;
+  }
+
+  let html = `<table class="cmp-table" aria-label="Content comparison">
+    <thead><tr>
+      <th class="col-id">ID</th>
+      <th class="col-field">Field</th>
+      <th class="col-data">Postman</th>
+      <th class="col-state">State</th>
+      <th class="col-data">HTML Doc</th>
+      <th class="col-res">Resolved</th>
+      <th class="col-act">Actions</th>
+    </tr></thead><tbody>`;
+
+  for (const row of rows) {
+    const es = rowEffectiveState(row);
+    const bCls = es === 'resolved' ? 'badge-resolved' : stateClass(row.state);
+    const bLbl = stateLabel(es);
+    const rkSafe = rowKey(row).replace(/[^a-z0-9]/gi,'_');
+    html += `<tr data-rk="${htmlEsc(rowKey(row))}">
+      <td class="cell-id col-id">${htmlEsc(row.id)}</td>
+      <td class="cell-field col-field">${htmlEsc(row.field)}</td>
+      <td class="cell-data col-data">${formatVal(row.postman)}</td>
+      <td class="col-state" style="text-align:center"><span class="badge ${bCls}" aria-label="State: ${bLbl}">${bLbl}</span></td>
+      <td class="cell-data col-data">${formatVal(row.html)}</td>
+      <td class="col-res">${makeResolvedCell(row)}</td>
+      <td class="col-act">${makeActionsCell(row)}</td>
+    </tr>`;
+  }
+
+  html += '</tbody></table>';
+  container.innerHTML = html;
+  attachTableEvents(container);
+}
+
+function renderEndpointsTab() {
+  const rows = state.registry.filter(r => r.block === 'apiData');
+  const filterState = document.getElementById('filter-state-ep').value;
+  const filterField = document.getElementById('filter-field-ep').value;
+  const search = document.getElementById('search-ep').value.toLowerCase();
+
+  const filtered = rows.filter(r => {
+    const es = rowEffectiveState(r);
+    if (filterState !== 'all' && r.state !== filterState && !(filterState === 'resolved' && es === 'resolved')) return false;
+    if (filterField !== 'all' && r.field !== filterField) return false;
+    if (search && !r.id.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  renderTableForRows(filtered, document.getElementById('endpoints-table-container'));
+}
+
+function renderExamplesTab() {
+  const rows = state.registry.filter(r => r.block === 'examples');
+  const filterState = document.getElementById('filter-state-ex').value;
+  const search = document.getElementById('search-ex').value.toLowerCase();
+
+  const filtered = rows.filter(r => {
+    if (filterState !== 'all' && r.state !== filterState) return false;
+    if (search && !r.id.toLowerCase().includes(search)) return false;
+    return true;
+  });
+
+  renderTableForRows(filtered, document.getElementById('examples-table-container'));
+}
+
+function renderWelcomeTab() {
+  const rows = state.registry.filter(r => r.block === 'welcome');
+  renderTableForRows(rows, document.getElementById('welcome-table-container'));
+}
+
+function renderErrorCodesTab() {
+  const rows = state.registry.filter(r => r.block === 'errorCodes');
+  renderTableForRows(rows, document.getElementById('errorcodes-table-container'));
+}
+
+function activeTab() {
+  return document.querySelector('.tab-btn.active')?.dataset.tab || 'endpoints';
+}
+
+function rerenderActiveTab() {
+  const tab = activeTab();
+  if (tab === 'endpoints') renderEndpointsTab();
+  else if (tab === 'examples') renderExamplesTab();
+  else if (tab === 'welcome') renderWelcomeTab();
+  else if (tab === 'errorcodes') renderErrorCodesTab();
+}
+
+function updateTabCounts() {
+  const reg = state.registry;
+  const count = (block) => reg.filter(r => r.block === block && r.state !== 'match').length;
+  const setC = (id, n) => { document.getElementById(id).textContent = n > 0 ? n : '✓'; };
+  setC('tc-endpoints', count('apiData'));
+  setC('tc-examples', count('examples'));
+  setC('tc-welcome', count('welcome'));
+  setC('tc-errorcodes', count('errorCodes'));
+}
+
+function updateStats() {
+  const reg = state.registry;
+  const conflicts = reg.filter(r => r.state === 'conflict').length;
+  const matches = reg.filter(r => r.state === 'match').length;
+  const resolved = Object.values(state.resolutions).filter(r => r.source !== 'unchanged').length;
+
+  const bar = document.getElementById('stats-bar');
+  bar.innerHTML = `
+    <span class="stat-chip conflicts" aria-label="${conflicts} conflicts">${conflicts} CONFLICTS</span>
+    <span class="stat-chip matches" aria-label="${matches} matches">${matches} MATCH</span>
+    <span class="stat-chip pending" aria-label="${resolved} resolved">${resolved} RESOLVED</span>
+  `;
+}
+
+// ============================================================
+// Event delegation for table actions
+// ============================================================
+function attachTableEvents(container) {
+  container.addEventListener('click', e => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const rk = btn.dataset.rk;
+    const action = btn.dataset.action;
+    const row = state.registry.find(r => rowKey(r) === rk);
+    if (!row && action !== 'save-edit' && action !== 'cancel-edit') return;
+
+    if (action === 'use-postman') {
+      setResolution(rk, row.postman, 'postman');
+    } else if (action === 'use-html') {
+      setResolution(rk, row.html, 'html');
+    } else if (action === 'edit') {
+      openEditMode(rk, btn);
+    } else if (action === 'save-edit') {
+      saveEdit(rk, btn);
+    } else if (action === 'cancel-edit') {
+      closeEditMode(rk, btn);
+    } else if (action === 'undo') {
+      delete state.resolutions[rk];
+      rerenderActiveTab();
+      updateStats();
+      updateChangesPanel();
+      updateApplyBtn();
+    }
+  });
+}
+
+function setResolution(rk, value, source) {
+  state.resolutions[rk] = { resolved: value, source };
+  rerenderActiveTab();
+  updateStats();
+  updateChangesPanel();
+  updateApplyBtn();
+}
+
+function openEditMode(rk, btn) {
+  const rkSafe = rk.replace(/[^a-z0-9]/gi,'_');
+  const editDiv = document.getElementById(`edit-${rkSafe}`);
+  if (!editDiv) return;
+  const row = state.registry.find(r => rowKey(r) === rk);
+  const existing = state.resolutions[rk];
+  const defaultVal = existing ? JSON.stringify(existing.resolved, null, 2) : (row?.html != null ? JSON.stringify(row.html, null, 2) : JSON.stringify(row?.postman, null, 2));
+  const ta = editDiv.querySelector('textarea');
+  ta.value = defaultVal || '';
+  editDiv.classList.add('active');
+  ta.focus();
+}
+
+function saveEdit(rk, btn) {
+  const rkSafe = rk.replace(/[^a-z0-9]/gi,'_');
+  const editDiv = document.getElementById(`edit-${rkSafe}`);
+  if (!editDiv) return;
+  const ta = editDiv.querySelector('textarea');
+  let val = ta.value;
+  try { val = JSON.parse(val); } catch { /* keep as string */ }
+  setResolution(rk, val, 'custom');
+  editDiv.classList.remove('active');
+}
+
+function closeEditMode(rk, btn) {
+  const rkSafe = rk.replace(/[^a-z0-9]/gi,'_');
+  const editDiv = document.getElementById(`edit-${rkSafe}`);
+  if (editDiv) editDiv.classList.remove('active');
+}
+
+// ============================================================
+// Changes Panel
+// ============================================================
+function updateChangesPanel() {
+  const list = document.getElementById('changes-list');
+  const empty = document.getElementById('empty-changes');
+  const entries = Object.entries(state.resolutions).filter(([, r]) => r.source !== 'unchanged');
+
+  if (entries.length === 0) {
+    empty.style.display = 'block';
+    list.querySelectorAll('.change-item').forEach(el => el.remove());
+    return;
+  }
+
+  empty.style.display = 'none';
+  list.querySelectorAll('.change-item').forEach(el => el.remove());
+
+  for (const [rk, res] of entries) {
+    const parts = rk.split('::');
+    const div = document.createElement('div');
+    div.className = 'change-item';
+    div.innerHTML = `<div class="ci-key" aria-label="Changed field">${htmlEsc(parts[1])} / ${htmlEsc(parts[2])}</div><div class="ci-source">${htmlEsc(res.source)}</div>`;
+    list.appendChild(div);
+  }
+}
+
+function updateApplyBtn() {
+  const count = Object.values(state.resolutions).filter(r => r.source !== 'unchanged').length;
+  document.getElementById('apply-btn').disabled = count === 0;
+}
+
+// ============================================================
+// Apply & Download
+// ============================================================
+function setupPanelEvents() {
+  document.getElementById('apply-btn').addEventListener('click', () => {
+    try {
+      const { postmanJson, htmlString } = applyResolutions(
+        state.registry,
+        state.resolutions,
+        state.postmanObj,
+        state.htmlRaw,
+        state.htmlBlocks
+      );
+
+      const pName = state.postmanName.replace(/\.json$/i, '') + '-bootstrapped.json';
+      const hName = state.htmlName.replace(/\.html$/i, '') + '-bootstrapped.html';
+
+      downloadText(postmanJson, pName, 'application/json');
+      setTimeout(() => downloadText(htmlString, hName, 'text/html'), 200);
+
+      document.getElementById('success-banner').classList.add('active');
+    } catch (e) {
+      alert('Apply failed: ' + e.message);
+    }
+  });
+
+  document.getElementById('clear-btn').addEventListener('click', () => {
+    state.resolutions = {};
+    rerenderActiveTab();
+    updateStats();
+    updateChangesPanel();
+    updateApplyBtn();
+    document.getElementById('success-banner').classList.remove('active');
+  });
+}
+
+function downloadText(content, filename, mime) {
+  const blob = new Blob([content], { type: mime + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+}
+
+// ============================================================
+// Tab switching
+// ============================================================
+function setupTabs() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected','true');
+      const panel = document.getElementById('panel-' + btn.dataset.tab);
+      if (panel) panel.classList.add('active');
+      rerenderActiveTab();
+    });
+  });
+}
+
+// ============================================================
+// Filter events
+// ============================================================
+function setupFilters() {
+  ['filter-state-ep','filter-field-ep','search-ep'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => renderEndpointsTab());
+    document.getElementById(id)?.addEventListener('change', () => renderEndpointsTab());
+  });
+  ['filter-state-ex','search-ex'].forEach(id => {
+    document.getElementById(id)?.addEventListener('input', () => renderExamplesTab());
+    document.getElementById(id)?.addEventListener('change', () => renderExamplesTab());
+  });
+}
+
+// ============================================================
+// Init
+// ============================================================
+setupLoadScreen();
+setupTabs();
+setupFilters();
+setupPanelEvents();
+
+// Expose for debugging
+return { state, parseCollection, parseHtmlBlocks, buildUnifiedRegistry, classifyRow, rowKey };
+
+})(); // end BootstrapEditor IIFE
+</script>
+</body>
+</html>
