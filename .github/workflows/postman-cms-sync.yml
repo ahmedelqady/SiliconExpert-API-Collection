@@ -1,0 +1,100 @@
+name: postman-cms-sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: Release version label
+        required: true
+        type: string
+      release_date:
+        description: Release date
+        required: true
+        type: string
+      release_title:
+        description: Release title
+        required: true
+        type: string
+      dry_run:
+        description: Generate artifacts only (no commit/push)
+        required: true
+        type: boolean
+      baseline_ref:
+        description: Baseline git ref (default HEAD~1)
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Postman CMS sync
+        id: sync
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          DRY_INPUT='${{ inputs.dry_run }}'
+          if [[ "${DRY_INPUT,,}" == "true" || "${DRY_INPUT}" == "1" ]]; then
+            DRY_VALUE=true
+          else
+            DRY_VALUE=false
+          fi
+
+          BASELINE='${{ inputs.baseline_ref }}'
+          if [[ -z "$BASELINE" ]]; then
+            BASELINE='HEAD~1'
+          fi
+
+          node scripts/postman_cms/sync_postman_to_html.mjs \
+            --collection "SiliconExpert API Collection (Docs + Examples) [Full].postman_collection.json" \
+            --html "docs/SE_API_Docs_v18.5.html" \
+            --baseline-ref "$BASELINE" \
+            --release-version "${{ inputs.release_version }}" \
+            --release-date "${{ inputs.release_date }}" \
+            --release-title "${{ inputs.release_title }}" \
+            --artifacts-dir "artifacts" \
+            --dry-run "$DRY_VALUE" | tee artifacts/sync_output.json
+
+          if git diff --quiet -- docs/SE_API_Docs_v18.5.html; then
+            echo "html_changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "html_changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          echo "dry_run=$DRY_VALUE" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: postman-html-sync-artifacts
+          path: |
+            artifacts/postman_html_diff.json
+            artifacts/postman_html_diff.md
+            artifacts/postman_html_content_snapshot.json
+            artifacts/sync_output.json
+          if-no-files-found: error
+
+      - name: Commit and push
+        if: steps.sync.outputs.dry_run == 'false' && steps.sync.outputs.html_changed == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add docs/SE_API_Docs_v18.5.html artifacts/postman_html_diff.json artifacts/postman_html_diff.md artifacts/postman_html_content_snapshot.json
+          git commit -m "docs(sync): postman cms sync ${{ inputs.release_version }} - ${{ inputs.release_title }}"
+          git push

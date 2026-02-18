@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "workflow-dispatch-inputs.schema.json",
+  "title": "Postman CMS Sync Workflow Inputs",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["release_version", "release_date", "release_title", "dry_run"],
+  "properties": {
+    "release_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Release/version label used in generated release notes"
+    },
+    "release_date": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable release date"
+    },
+    "release_title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Release note headline"
+    },
+    "dry_run": {
+      "type": "boolean",
+      "description": "If true, generate artifacts and updates but skip commit/push"
+    },
+    "baseline_ref": {
+      "type": "string",
+      "description": "Optional git ref override for baseline diff"
+    }
+  }
+}

@@ -1,50 +1,42 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# SiliconExpert API Workspace Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. Spec-First for Major Changes
+All major repository changes must start with Spec Kit artifacts before implementation. For guarded paths (`*.postman_collection.json`, `docs/**`, `scripts/**`, `.github/workflows/**`), feature work must include `spec.md`, `plan.md`, and `tasks.md` in the same pull request.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+### II. Postman Is Source of Truth
+The Postman collection is the canonical definition of API-facing content. Any generated documentation, endpoint metadata, examples, and release-note API deltas must be derived from the collection, not hand-maintained independently.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### III. Deterministic Automation and Safe Failure
+Automation must be deterministic and reproducible from repository state plus explicit workflow inputs. If required source blocks cannot be parsed safely, automation must fail hard and must not commit partial or ambiguous output.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### IV. Verifiable Changes and Auditability
+Every automation run must emit human-readable and machine-readable change artifacts. Diffs must clearly identify endpoint/category/parameter/content changes and the baseline commit used for comparison.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### V. Security and Secret Hygiene
+No credentials, tokens, or session artifacts may be committed. Generated tools and workflows must avoid leaking cookies or local agent state. `.gitignore` and review checks must protect secret-bearing paths by default.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+## Technical Constraints
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- Primary automation environment: GitHub Actions (manual `workflow_dispatch` unless explicitly expanded).
+- Preferred scripting: shell + Node.js for parsing and transformation.
+- HTML updates must be scoped to defined data blocks (e.g., `API_DATA`, `EXAMPLES`, release-note sections), not free-form edits.
+- Collection and docs changes must remain reviewable; avoid opaque binary transformations.
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+## Development Workflow and Quality Gates
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+- Use feature branches with numeric prefix (`###-name`) via Spec Kit scripts.
+- Follow sequence: `/speckit.constitution` -> `/speckit.specify` -> `/speckit.clarify` (when needed) -> `/speckit.plan` -> `/speckit.tasks` -> `/speckit.analyze` -> `/speckit.implement`.
+- CI guardrails enforce spec artifacts for major changes; emergency bypass requires explicit PR label (`spec-exempt`) for auditability.
+- Any rule changes to guardrails, source-of-truth mapping, or release process require constitution amendment in the same PR.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes local conventions and ad-hoc implementation habits for scoped repository work. Pull requests affecting guarded paths must demonstrate compliance. Amendments require:
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+1. Updated constitution text.
+2. A matching spec entry describing rationale and impact.
+3. Confirmation that related guardrails/docs were updated when applicable.
+
+**Version**: 1.0.0 | **Ratified**: 2026-02-17 | **Last Amended**: 2026-02-17

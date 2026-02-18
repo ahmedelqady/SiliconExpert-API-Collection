@@ -1,0 +1,124 @@
+{
+  "baseline": {
+    "commit": "fixture-before",
+    "fileHash": "099f696810f7d4e2408b52bfdd27c3fd0a9f40be44e99d3e4d75e966804711bd",
+    "collectionPath": "scripts/postman_cms/fixtures/collection.before.json"
+  },
+  "current": {
+    "commit": "fixture-after",
+    "fileHash": "e3176fc22b5396adbda3e4e11fb2b8b0bf5f0ea6e84e32e4558a3fa86cbee7f7",
+    "collectionPath": "scripts/postman_cms/fixtures/collection.after.json"
+  },
+  "summary": {
+    "categoriesAdded": 0,
+    "categoriesRemoved": 0,
+    "categoriesChanged": 0,
+    "endpointsAdded": 1,
+    "endpointsRemoved": 0,
+    "endpointsChanged": 2,
+    "errorCodesAdded": 3,
+    "errorCodesRemoved": 0,
+    "errorCodesChanged": 1,
+    "welcomeSectionsChanged": 0
+  },
+  "categories": {
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "endpoints": {
+    "added": [
+      "get-part-details"
+    ],
+    "removed": [],
+    "changed": [
+      {
+        "id": "authenticate-user-login",
+        "changeTypes": [
+          "examples"
+        ]
+      },
+      {
+        "id": "keyword-part-search",
+        "changeTypes": [
+          "params",
+          "description",
+          "examples"
+        ]
+      }
+    ]
+  },
+  "errorCodes": {
+    "added": [
+      {
+        "code": "401",
+        "meaning": "Invalid or expired credentials",
+        "action": "Authenticate again or verify credentials/permissions.",
+        "severity": "auth",
+        "sources": [
+          "POST /ProductAPI/search/authenticateUser"
+        ]
+      },
+      {
+        "code": "404",
+        "meaning": "Component not found",
+        "action": "Inspect message and endpoint documentation for guidance.",
+        "severity": "unknown",
+        "sources": [
+          "GET /ProductAPI/search/partdetails"
+        ]
+      },
+      {
+        "code": "429",
+        "meaning": "Rate limit exceeded. Retry after backoff.",
+        "action": "Reduce request frequency and retry with backoff.",
+        "severity": "quota",
+        "sources": [
+          "POST /ProductAPI/search/partsearch"
+        ]
+      }
+    ],
+    "removed": [],
+    "changed": [
+      {
+        "code": "0",
+        "before": {
+          "code": "0",
+          "meaning": "Authentication Succeeded",
+          "action": "Authenticate again or verify credentials/permissions.",
+          "severity": "auth",
+          "sources": [
+            "POST /ProductAPI/search/authenticateUser",
+            "POST /ProductAPI/search/listpartsearch",
+            "POST /ProductAPI/search/partsearch"
+          ]
+        },
+        "after": {
+          "code": "0",
+          "meaning": "Authentication Succeeded",
+          "action": "Authenticate again or verify credentials/permissions.",
+          "severity": "auth",
+          "sources": [
+            "GET /ProductAPI/search/partdetails",
+            "POST /ProductAPI/search/authenticateUser",
+            "POST /ProductAPI/search/listpartsearch",
+            "POST /ProductAPI/search/partsearch"
+          ]
+        }
+      }
+    ]
+  },
+  "welcome": {
+    "changedSections": []
+  },
+  "htmlBlocksChanged": [
+    "API_DATA",
+    "EXAMPLES",
+    "ERROR_CODES_CONTENT",
+    "RELEASE_NOTES_CONTENT"
+  ],
+  "hashes": {
+    "baseline": "a695ec52f6a7fa6920a497e8d9dc990049815d02e8f662f552aec15db5717441",
+    "current": "48d9994b9de952e9dd449c44860085dc50f38857cd10ede6435c147b80f87232"
+  }
+}

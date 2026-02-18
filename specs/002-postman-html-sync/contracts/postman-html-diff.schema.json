@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "postman-html-diff.schema.json",
+  "title": "Postman HTML Diff Artifact",
+  "type": "object",
+  "required": [
+    "baseline",
+    "current",
+    "summary",
+    "categories",
+    "endpoints",
+    "errorCodes",
+    "welcome",
+    "htmlBlocksChanged"
+  ],
+  "properties": {
+    "baseline": {
+      "type": "object",
+      "required": ["commit", "fileHash", "collectionPath"],
+      "properties": {
+        "commit":         { "type": "string" },
+        "fileHash":       { "type": "string" },
+        "collectionPath": { "type": "string" }
+      }
+    },
+    "current": {
+      "type": "object",
+      "required": ["commit", "fileHash", "collectionPath"],
+      "properties": {
+        "commit":         { "type": "string" },
+        "fileHash":       { "type": "string" },
+        "collectionPath": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "categoriesAdded",
+        "categoriesRemoved",
+        "categoriesChanged",
+        "endpointsAdded",
+        "endpointsRemoved",
+        "endpointsChanged",
+        "errorCodesAdded",
+        "errorCodesRemoved",
+        "errorCodesChanged",
+        "welcomeSectionsChanged"
+      ],
+      "properties": {
+        "categoriesAdded":        { "type": "integer", "minimum": 0 },
+        "categoriesRemoved":      { "type": "integer", "minimum": 0 },
+        "categoriesChanged":      { "type": "integer", "minimum": 0 },
+        "endpointsAdded":         { "type": "integer", "minimum": 0 },
+        "endpointsRemoved":       { "type": "integer", "minimum": 0 },
+        "endpointsChanged":       { "type": "integer", "minimum": 0 },
+        "errorCodesAdded":        { "type": "integer", "minimum": 0 },
+        "errorCodesRemoved":      { "type": "integer", "minimum": 0 },
+        "errorCodesChanged":      { "type": "integer", "minimum": 0 },
+        "welcomeSectionsChanged": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "categories": {
+      "type": "object",
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added":   { "type": "array", "items": { "type": "string" } },
+        "removed": { "type": "array", "items": { "type": "string" } },
+        "changed": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "endpoints": {
+      "type": "object",
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added":   { "type": "array", "items": { "type": "string" } },
+        "removed": { "type": "array", "items": { "type": "string" } },
+        "changed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "changeTypes"],
+            "properties": {
+              "id":          { "type": "string" },
+              "changeTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": ["method", "path", "params", "description", "examples", "category"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "errorCodes": {
+      "type": "object",
+      "required": ["added", "removed", "changed"],
+      "properties": {
+        "added": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/statusCodeEntry" }
+        },
+        "removed": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/statusCodeEntry" }
+        },
+        "changed": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "before", "after"],
+            "properties": {
+              "code":   { "type": "string" },
+              "before": { "$ref": "#/$defs/statusCodeEntry" },
+              "after":  { "$ref": "#/$defs/statusCodeEntry" }
+            }
+          }
+        }
+      }
+    },
+    "welcome": {
+      "type": "object",
+      "required": ["changedSections"],
+      "properties": {
+        "changedSections": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["title", "subtitle", "guidelinesLeft", "guidelinesRight", "supportCards", "baseUrl"]
+          }
+        }
+      }
+    },
+    "htmlBlocksChanged": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "API_DATA",
+          "EXAMPLES",
+          "ERROR_CODES_CONTENT",
+          "WELCOME_CONTENT",
+          "RELEASE_NOTES_CONTENT"
+        ]
+      }
+    },
+    "hashes": {
+      "type": "object",
+      "properties": {
+        "baseline": { "type": "string" },
+        "current":  { "type": "string" }
+      }
+    },
+    "releaseNoteEntry": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "string" },
+        "date":    { "type": "string" },
+        "title":   { "type": "string" },
+        "status":  { "type": "string", "enum": ["changed", "no-change"] }
+      }
+    }
+  },
+  "$defs": {
+    "statusCodeEntry": {
+      "type": "object",
+      "required": ["code", "meaning", "severity", "action", "sources"],
+      "properties": {
+        "code":     { "type": "string" },
+        "meaning":  { "type": "string" },
+        "severity": { "type": "string", "enum": ["auth", "validation", "quota", "server", "unknown"] },
+        "action":   { "type": "string" },
+        "sources":  { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
