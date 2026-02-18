@@ -352,3 +352,60 @@ test('Integration: Multiple endpoints with same error code consolidate into one 
   assert.equal(error5Entries.length, 1);
   assert.equal(error5Entries[0].sources.length, 2);
 });
+
+// Scenario 9: Release-notes entry has correct shape (version, date, title, tag, delta line)
+test('Integration: Release-notes block contains well-formed entry with version, date, title, tag, and delta', () => {
+  const ANCHOR_HTML = `<script>
+const API_DATA = {};
+const EXAMPLES = {};
+const ERROR_CODES_CONTENT = { statusCodes: [], httpCodes: [], notes: [] };
+const WELCOME_CONTENT = { title: '', subtitle: '', baseUrl: '', guidelinesLeft: [], guidelinesRight: [], supportCards: [] };
+const RELEASE_NOTES_CONTENT = { items: [] };
+</script>`;
+
+  const collection = {
+    info: { name: 'API', description: 'Test' },
+    item: [
+      {
+        name: 'Search',
+        item: [
+          {
+            name: 'Part Search',
+            request: { method: 'GET', url: { raw: 'https://api.example.com/ProductAPI/search/partsearch' } },
+            response: [{ code: 200, status: 'OK', body: '{"Status":{"Code":"0","Message":"OK"}}' }]
+          }
+        ]
+      }
+    ]
+  };
+
+  const parsedHtml = parseHtmlBlocks(ANCHOR_HTML);
+  const snapshot = parseCollection(collection, {
+    currentApiData: parsedHtml.API_DATA.value,
+    currentExamples: parsedHtml.EXAMPLES.value
+  });
+
+  const metadata = {
+    baseline: { commit: 'a', fileHash: '1', collectionPath: 'test.json' },
+    current: { commit: 'b', fileHash: '2', collectionPath: 'test.json' }
+  };
+  const diff = diffSnapshots({ baseline: snapshot, current: snapshot, metadata });
+
+  // Build release-notes entry manually (mirrors sync_postman_to_html.mjs logic)
+  const changed = diff.summary.endpointsAdded + diff.summary.endpointsRemoved + diff.summary.endpointsChanged;
+  const entry = {
+    version: 'v18.6.0',
+    date: '2026-02-18',
+    tag: changed > 0 ? 'Latest' : 'No API Changes',
+    sections: [{ title: 'Initial sync', items: [`API delta: +${diff.summary.endpointsAdded} / -${diff.summary.endpointsRemoved} / ~${diff.summary.endpointsChanged}, errors ~${diff.summary.errorCodesChanged}, welcome ~${diff.summary.welcomeSectionsChanged}`] }]
+  };
+
+  const releaseNotesContent = { items: [entry] };
+  const { html: patched } = updateHtmlBlocks(ANCHOR_HTML, { releaseNotesContent });
+
+  assert.ok(patched.includes('v18.6.0'), 'version should be in patched HTML');
+  assert.ok(patched.includes('2026-02-18'), 'date should be in patched HTML');
+  assert.ok(patched.includes('No API Changes'), 'tag should be in patched HTML');
+  assert.ok(patched.includes('API delta:'), 'delta line should be in patched HTML');
+  assert.ok(patched.includes('Initial sync'), 'title should be in patched HTML');
+});

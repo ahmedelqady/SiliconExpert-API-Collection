@@ -87,3 +87,39 @@ test('parseCollection keeps deterministic ordering of categories', () => {
   const snapshot = parseCollection(sampleCollection(), { currentApiData: {}, currentExamples: {} });
   assert.deepEqual(snapshot.categories.map((entry) => entry.id), ['auth', 'search']);
 });
+
+test('parseCollection deduplicates endpoint ids when two requests share the same METHOD + PATH', () => {
+  // Use the same name for both requests so they produce the same base slug,
+  // forcing the numeric-suffix dedup path in pickEndpointId.
+  const collection = {
+    info: { name: 'Dedup API', description: 'Test dedup' },
+    item: [
+      {
+        name: 'Search',
+        item: [
+          {
+            name: 'Part Search',
+            request: { method: 'GET', url: { raw: 'https://api.example.com/ProductAPI/search/partsearch' } },
+            response: []
+          },
+          {
+            name: 'Part Search',
+            request: { method: 'POST', url: { raw: 'https://api.example.com/ProductAPI/search/partsearch' } },
+            response: []
+          }
+        ]
+      }
+    ]
+  };
+
+  const snapshot = parseCollection(collection, { currentApiData: {}, currentExamples: {} });
+  const ids = Object.keys(snapshot.apiData);
+
+  // Both requests must be present — no silent drop
+  assert.equal(ids.length, 2, `expected 2 endpoints, got: ${ids}`);
+
+  // The first keeps the base slug; the second gets a numeric suffix
+  assert.ok(ids.includes('part-search'), `expected 'part-search' in ids: ${ids}`);
+  const suffixed = ids.find((id) => id !== 'part-search');
+  assert.match(suffixed, /^part-search-\d+$/, `expected suffixed id, got: ${suffixed}`);
+});

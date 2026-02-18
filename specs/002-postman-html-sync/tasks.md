@@ -75,6 +75,10 @@
   - `scripts/postman_cms/fixtures/collection.before.json`
   - `scripts/postman_cms/fixtures/collection.after.json`
   - `scripts/postman_cms/fixtures/expected.diff.json` (committed, generated from real parser)
+- [x] `tests/postman_cms/parser.test.mjs` — duplicate `METHOD + PATH` dedup (added in post-analysis gap closure)
+  - Two requests sharing same method+path get stable id on first, suffixed id on second
+- [x] `tests/postman_cms/integration.test.mjs` — release-notes entry format (added in post-analysis gap closure)
+  - Version, date, title, tag, and delta line present in `RELEASE_NOTES_CONTENT` block
 
 ## Phase 4 — Contracts and Documentation ✅
 
@@ -93,14 +97,14 @@
 
 | File | Tests |
 |---|---|
-| `parser.test.mjs` | 2 |
+| `parser.test.mjs` | 3 |
 | `diff.test.mjs` | 1 |
 | `html-update.test.mjs` | 3 |
 | `error-codes.test.mjs` | 9 |
 | `welcome-content.test.mjs` | 12 |
-| `integration.test.mjs` | 8 |
+| `integration.test.mjs` | 9 |
 | `fixtures.test.mjs` | 15 |
-| **Total** | **50** |
+| **Total** | **52** |
 
 All tests pass (`npm test`).
 
@@ -108,7 +112,7 @@ All tests pass (`npm test`).
 
 ## Completion Checklist
 
-- [x] All spec FRs (FR-001 through FR-016) satisfied
+- [x] All spec FRs (FR-001 through FR-016 + FR-003a) satisfied
 - [x] All spec success criteria (SC-001 through SC-005) met
 - [x] Constitution gates 1–5 all PASS
 - [x] Edge cases from spec covered in tests

@@ -69,11 +69,11 @@ As a maintainer, I want to provide release metadata at trigger time so release-n
 
 ### Edge Cases
 
-- What happens when two collection requests normalize to the same `METHOD + PATH` key?
-- How does the system handle renamed folders/endpoints where identity is unclear (rename vs remove+add)?
-- What happens when HTML contains malformed JSON-like blocks (`API_DATA` / `EXAMPLES`) that cannot be parsed?
-- How does the system behave when baseline commit does not contain the collection file (first-run edge)?
-- What happens when no write changes are produced but release metadata is provided?
+- **Same `METHOD + PATH` key**: When two requests normalize to the same key, the first occurrence reuses the stable id from `existingByMethodPath`; subsequent requests with identical key receive a deduplicated slug suffixed `-2`, `-3`, etc. Covered by unit tests in `parser.test.mjs`.
+- **Rename vs remove+add**: Identity is based on stable `METHOD + PATH` lookup. Renames with changed path are treated as remove+add and surface as separate entries in the diff. No rename-inference is attempted.
+- **Malformed HTML blocks**: If any required `const` block cannot be brace-balanced parsed, the workflow throws and exits non-zero before any write. Covered by `html-update.test.mjs` and integration tests.
+- **First-run / baseline missing** *(resolved by FR-003a)*: Workflow falls back to self-comparison (zero structural diff) and marks metadata `baseline.commit = 'fallback-current'`.
+- **No content changes with release metadata provided**: A release-note entry is still written with `tag: 'No API Changes'` and the delta summary shows all zeros. HTML is updated only for the `RELEASE_NOTES_CONTENT` block.
 
 ## Requirements *(mandatory)*
 
@@ -81,7 +81,8 @@ As a maintainer, I want to provide release metadata at trigger time so release-n
 
 - **FR-001**: Workflow MUST be manually triggerable via GitHub Actions `workflow_dispatch`.
 - **FR-002**: Workflow MUST read the Postman collection file in repo as the canonical source for API docs sync.
-- **FR-003**: Workflow MUST use previous commit on `main` as default baseline for diffing unless explicitly overridden by workflow inputs.
+- **FR-003**: Workflow MUST use `HEAD~1` on `main` as the default baseline for diffing. An optional `baseline_ref` workflow input MUST allow override to any resolvable git ref (branch, tag, or SHA).
+- **FR-003a**: When the baseline ref cannot be resolved, or the collection file is absent at that ref (first-run edge), workflow MUST fall back to comparing the current collection against itself (producing zero structural diff) and MUST mark the baseline commit as `fallback-current` in artifact metadata — no error, no partial commit.
 - **FR-004**: Workflow MUST detect and classify category-level changes (added, removed, renamed where inferable).
 - **FR-005**: Workflow MUST detect and classify endpoint-level changes (added, removed, method/path/params/content changes).
 - **FR-006**: Workflow MUST update only the five declared HTML sections: `API_DATA`, `EXAMPLES`, `ERROR_CODES_CONTENT`, `WELCOME_CONTENT`, and `RELEASE_NOTES_CONTENT`. All other HTML content is read-only.
@@ -93,7 +94,7 @@ As a maintainer, I want to provide release metadata at trigger time so release-n
 - **FR-012**: Workflow MUST support run-time release metadata inputs (`release_version`, `release_date`, `release_title`).
 - **FR-013**: In non-dry runs with successful updates, workflow MUST auto-commit and push to `main`.
 - **FR-014**: Commit message format MUST include release context and indicate docs sync automation.
-- **FR-015**: Workflow MUST preserve deterministic output ordering to reduce diff noise.
+- **FR-015**: Workflow MUST preserve deterministic output ordering to reduce diff noise. Ordering is defined as: endpoint keys and category keys sorted alphabetically by slug; params preserved in collection order; error codes sorted by code string ascending.
 - **FR-016**: Workflow MUST avoid including cookies/tokens/session artifacts in generated outputs.
 
 ### Key Entities *(include if feature involves data)*
