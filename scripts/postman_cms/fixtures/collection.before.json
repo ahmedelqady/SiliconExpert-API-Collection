@@ -1,0 +1,122 @@
+{
+  "info": {
+    "_postman_id": "fixture-before",
+    "name": "SiliconExpert API",
+    "description": "Access electronic component data, manage BOMs, and monitor supply chain risks.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Authenticate and manage sessions.",
+      "item": [
+        {
+          "name": "Authenticate User (Login)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "https://api.siliconexpert.com/ProductAPI/search/authenticateUser",
+              "host": ["api", "siliconexpert", "com"],
+              "path": ["ProductAPI", "search", "authenticateUser"]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "login", "value": "{{login}}", "type": "text" },
+                { "key": "apiKey", "value": "{{apiKey}}", "type": "text" }
+              ]
+            },
+            "description": "Authenticate with credentials to establish a session."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "status": "OK",
+              "body": "{\"Status\":{\"Code\":\"0\",\"Message\":\"Authentication Succeeded\",\"Success\":\"true\"}}"
+            },
+            {
+              "name": "Auth Failure",
+              "code": 200,
+              "status": "OK",
+              "body": "{\"Status\":{\"Code\":\"5\",\"Message\":\"Authentication Failed\",\"Success\":\"false\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Part Search Operations",
+      "description": "Search and retrieve electronic component data.",
+      "item": [
+        {
+          "name": "Keyword Part Search",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "https://api.siliconexpert.com/ProductAPI/search/partsearch?partNumber={{partNumber}}&fmt={{fmt}}",
+              "host": ["api", "siliconexpert", "com"],
+              "path": ["ProductAPI", "search", "partsearch"],
+              "query": [
+                { "key": "partNumber", "value": "{{partNumber}}" },
+                { "key": "fmt", "value": "{{fmt}}" }
+              ]
+            },
+            "description": "Search parts by keyword or part number."
+          },
+          "response": [
+            {
+              "name": "Success JSON",
+              "code": 200,
+              "status": "OK",
+              "body": "{\"Status\":{\"Code\":\"0\",\"Message\":\"Successful Operation\",\"Success\":\"true\"},\"TotalItems\":\"Total Items: 449, Shown Items: 50\",\"Result\":[{\"ComID\":\"1854473286\",\"PartNumber\":\"LM317\"}]}"
+            },
+            {
+              "name": "Invalid Params",
+              "code": 200,
+              "status": "OK",
+              "body": "{\"Status\":{\"Code\":\"3\",\"Message\":\"Invalid Parameters\",\"Success\":\"false\"}}"
+            }
+          ]
+        },
+        {
+          "name": "List Part Search",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "https://api.siliconexpert.com/ProductAPI/search/listpartsearch?fmt={{fmt}}",
+              "host": ["api", "siliconexpert", "com"],
+              "path": ["ProductAPI", "search", "listpartsearch"],
+              "query": [
+                { "key": "fmt", "value": "{{fmt}}" }
+              ]
+            },
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                { "key": "parts", "value": "{{parts}}", "type": "text" }
+              ]
+            },
+            "description": "Search multiple parts by a comma-separated list."
+          },
+          "response": [
+            {
+              "name": "Success",
+              "code": 200,
+              "status": "OK",
+              "body": "{\"Status\":{\"Code\":\"0\",\"Message\":\"Successful Operation\",\"Success\":\"true\"},\"Result\":[{\"ComID\":\"23875349\",\"PartNumber\":\"BAV99\"}]}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "login", "value": "", "type": "default" },
+    { "key": "apiKey", "value": "", "type": "default" },
+    { "key": "base_url", "value": "https://api.siliconexpert.com/ProductAPI", "type": "default" },
+    { "key": "fmt", "value": "json", "type": "default" },
+    { "key": "partNumber", "value": "BAV99", "type": "default" },
+    { "key": "parts", "value": "BAV99,1N4148", "type": "default" }
+  ]
+}

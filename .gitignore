@@ -6,3 +6,10 @@
 
 # macOS metadata
 .DS_Store
+
+# Generated sync artifacts (uploaded to GitHub Actions, not committed except by bot)
+artifacts/
+!artifacts/.gitkeep
+
+# Node
+node_modules/
