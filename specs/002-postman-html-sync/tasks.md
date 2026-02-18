@@ -60,7 +60,7 @@
   - All five blocks patched
   - Missing anchor throws
   - Idempotency
-- [x] `tests/postman_cms/error-codes.test.mjs` — targeted error catalog tests (10 cases)
+- [x] `tests/postman_cms/error-codes.test.mjs` — targeted error catalog tests (9 cases)
 - [x] `tests/postman_cms/welcome-content.test.mjs` — targeted welcome builder tests (12 cases)
 - [x] `tests/postman_cms/integration.test.mjs` — end-to-end scenario tests (8 cases)
   - New 401/403 triggers error block update
@@ -96,11 +96,11 @@
 | `parser.test.mjs` | 2 |
 | `diff.test.mjs` | 1 |
 | `html-update.test.mjs` | 3 |
-| `error-codes.test.mjs` | 10 |
+| `error-codes.test.mjs` | 9 |
 | `welcome-content.test.mjs` | 12 |
 | `integration.test.mjs` | 8 |
 | `fixtures.test.mjs` | 15 |
-| **Total** | **51** |
+| **Total** | **50** |
 
 All tests pass (`npm test`).
 

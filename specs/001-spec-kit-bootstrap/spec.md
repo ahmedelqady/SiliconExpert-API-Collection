@@ -36,7 +36,7 @@ As a collaborator, I need a short runbook and safe `.codex` tracking behavior to
 ### Functional Requirements
 
 - FR-001: The repository MUST include Spec Kit bootstrap assets for Codex in-place usage.
-- FR-002: The repository MUST provide a documented command for pinned `uvx` initialization.
+- FR-002: The repository MUST include committed Spec Kit prompt templates and helper scripts so contributors can use `/speckit.*` commands without any external tooling or `uvx` installation.
 - FR-003: The repository MUST include a CI guard that checks guarded path changes.
 - FR-004: The CI guard MUST require `specs/<feature>/spec.md`, `plan.md`, and `tasks.md` for guarded changes.
 - FR-005: The CI guard MUST support emergency bypass via PR label `spec-exempt`.
@@ -50,6 +50,6 @@ As a collaborator, I need a short runbook and safe `.codex` tracking behavior to
 
 ## Success Criteria
 
-- SC-001: New contributors can run one documented setup command and get working `/speckit.*` prompts.
+- SC-001: New contributors can clone the repository and immediately use `/speckit.*` prompts — all templates and scripts are committed and require no separate installation step.
 - SC-002: PRs touching guarded paths fail without required spec artifacts.
 - SC-003: Urgent PRs can proceed only with explicit labeled bypass.

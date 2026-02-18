@@ -69,7 +69,8 @@ scripts/
     │   ├── parse_html_blocks.mjs
     │   ├── diff_snapshots.mjs
     │   ├── update_html_blocks.mjs
-    │   └── write_artifacts.mjs
+    │   ├── write_artifacts.mjs
+    │   └── utils.mjs
     └── fixtures/
         ├── collection.before.json
         ├── collection.after.json
@@ -79,7 +80,11 @@ tests/
 └── postman_cms/
     ├── parser.test.mjs
     ├── diff.test.mjs
-    └── html-update.test.mjs
+    ├── html-update.test.mjs
+    ├── error-codes.test.mjs
+    ├── welcome-content.test.mjs
+    ├── integration.test.mjs
+    └── fixtures.test.mjs
 ```
 
 **Structure Decision**: Single-repo automation structure using one workflow, one entrypoint script, focused library modules, and targeted tests.

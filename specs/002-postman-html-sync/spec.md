@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-postman-html-sync`
 **Created**: 2026-02-17
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Manually triggered automation that treats Postman collection as CMS, captures API structure/content changes, updates HTML docs sections, and commits changes to GitHub"
 
 ## User Scenarios & Testing *(mandatory)*
@@ -84,7 +84,7 @@ As a maintainer, I want to provide release metadata at trigger time so release-n
 - **FR-003**: Workflow MUST use previous commit on `main` as default baseline for diffing unless explicitly overridden by workflow inputs.
 - **FR-004**: Workflow MUST detect and classify category-level changes (added, removed, renamed where inferable).
 - **FR-005**: Workflow MUST detect and classify endpoint-level changes (added, removed, method/path/params/content changes).
-- **FR-006**: Workflow MUST update only declared HTML sections relevant to generated API content (`API_DATA`, `EXAMPLES`, release-note section).
+- **FR-006**: Workflow MUST update only the five declared HTML sections: `API_DATA`, `EXAMPLES`, `ERROR_CODES_CONTENT`, `WELCOME_CONTENT`, and `RELEASE_NOTES_CONTENT`. All other HTML content is read-only.
 - **FR-007**: Workflow MUST fail if required HTML anchor blocks cannot be safely parsed.
 - **FR-008**: On failure, workflow MUST NOT commit or push partial HTML updates.
 - **FR-009**: Workflow MUST generate a machine-readable diff artifact (`postman_html_diff.json`).
