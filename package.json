@@ -1,0 +1,9 @@
+{
+  "name": "postman-repo-automation",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/postman_cms/*.test.mjs",
+    "sync:postman": "node scripts/postman_cms/sync_postman_to_html.mjs"
+  }
+}

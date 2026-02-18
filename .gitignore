@@ -3,3 +3,6 @@
 .codex/*
 !.codex/prompts/
 !.codex/prompts/*.md
+
+# macOS metadata
+.DS_Store
