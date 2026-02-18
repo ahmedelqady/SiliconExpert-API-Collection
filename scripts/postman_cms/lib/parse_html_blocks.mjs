@@ -123,11 +123,18 @@ export function parseHtmlBlocks(html) {
 }
 
 export function serializeConstObject(name, value, indent = '            ') {
-  const body = JSON.stringify(value, null, 4)
-    .split('\n')
-    .map((line) => `${indent}${line}`)
-    .join('\n');
-  return `${indent}const ${name} = ${body};`;
+  // Split the JSON into lines.  The first line is the opening `{` which sits
+  // directly after `= ` on the const declaration — it must NOT receive an
+  // extra indent prefix.  All subsequent lines (interior + closing `}`) DO
+  // need the indent so they align with the surrounding script block.
+  // NOTE: replaceStart points to the `c` in `const`, i.e. AFTER the HTML's
+  // own leading whitespace which is preserved as-is.  Adding indent to the
+  // const declaration line would double the indentation.
+  const lines = JSON.stringify(value, null, 4).split('\n');
+  const [firstLine, ...restLines] = lines;
+  const indentedRest = restLines.map((line) => `${indent}${line}`).join('\n');
+  const body = restLines.length > 0 ? `${firstLine}\n${indentedRest}` : firstLine;
+  return `const ${name} = ${body};`;
 }
 
 export function requiredHtmlBlocks() {

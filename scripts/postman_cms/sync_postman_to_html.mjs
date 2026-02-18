@@ -152,16 +152,15 @@ function main() {
 
   const releaseNotesContent = buildReleaseNotesContent(parsedHtml.RELEASE_NOTES_CONTENT.value, releaseEntry);
 
+  // Only update RELEASE_NOTES_CONTENT from the sync run.
+  // API_DATA, EXAMPLES, WELCOME_CONTENT, and ERROR_CODES_CONTENT are curated
+  // HTML documentation and must NOT be overwritten with raw Postman data.
   const updated = updateHtmlBlocks(html, {
-    apiData: currentSnapshot.apiData,
-    examples: currentSnapshot.examples,
-    welcomeContent: currentSnapshot.welcomeContent,
-    errorCodes: currentSnapshot.errorCodes,
     releaseNotesContent
   });
 
   const htmlChanged = updated.html !== html;
-  if (htmlChanged) {
+  if (htmlChanged && !dryRun) {
     fs.writeFileSync(htmlPath, updated.html, 'utf8');
   }
 
